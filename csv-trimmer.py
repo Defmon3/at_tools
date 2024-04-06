@@ -24,8 +24,8 @@ def process_csv(input_filename):
         writer = csv.DictWriter(outfile, fieldnames=desired_fields)
 
         writer.writeheader()  # Write the header row
-        for row in reader:
-            slim_row = {field: row[field] for field in desired_fields}
+        for row in list(reader):
+            slim_row = {field: row.get(field, "") for field in desired_fields}
             writer.writerow(slim_row)
 
 

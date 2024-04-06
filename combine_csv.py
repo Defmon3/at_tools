@@ -47,4 +47,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     combine_csv_files(args.csv_files)
-ls nlsearch | tr '\n' ' ' | xargs -I {} python3 combine_csv.py {}
