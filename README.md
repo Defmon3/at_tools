@@ -1,32 +1,66 @@
-Make sure you have git installed ("sudo apt-get install git -y") a open terminal and run the following command:
+# ADTECH Data Processing Tools
+
+## Prerequisites
+
+
+Make sure you have `python3` and `pip` installed on your system. You can install them using the following commands:
+
+```bash
+sudo apt-get install python3 -y && sudo apt-get install python3-pip -y
+``` 
+
+Ensure you have `git` installed on your system. You can install `git` using the following command:
+
+```bash
+sudo apt-get install git -y
+```
+
+## Getting Started
+
+1. **Clone the repository** to get the scripts:
+
+```bash
 git clone https://github.com/Defmon3/at_tools.git
+```
 
-Some of these scripts requires external addons. To install them, run the following command in the terminal:
+2. **Install required packages** for the scripts. Some scripts may need external add-ons or packages to function correctly. Install them by running:
+
+```bash
 pip install -r requirements.txt
+```
+
+This directory includes a collection of scripts tailored for processing ADTECH data from LIGHTHOUSE.
+
+## Scripts Description
+
+### `find_in_files.py`
+- **Purpose**: Compares a specific field across different locations within LIGHTHOUSE. Ideal for identifying common entities across selected polygons, such as finding devices observed at all selected sites.
+- **Usage**: After exporting and unzipping your data, you'll find an "analysis" folder with files for each polygon. These files list unique field values, sorted by frequency, to facilitate comparison.
+- **Execution**:```python find_in_files.py <file1.txt> file2.txt>```
+
+### `combine_csv.py`
+- **Purpose**: Merges multiple CSV files, accommodating variations in field order or completeness. Useful for integrating CSVs from extended periods or differing schemas.
+- **Usage**: Directly merge CSVs from different sources or times to create a cohesive dataset.
+- **Execution**:```python combine_csv.py <file_1.csv> <file_2.csv> ... <file_n.csv>```
+
+### `csv-to-json.py`
+- **Purpose**: Converts CSV files into JSON format, making the data suitable for databases like BigQuery or Elasticsearch. Output: ```<inputfile>.json```
+- **Execution**:```python csv-to-json.py <file_1.csv>```
+
+### `location_report.py`
+- **Purpose**: Generates reports on device sightings at specified locations, using a list of polygons. Adaptable to various points of interest. Output: ```location_report.csv```
+- - **Usage**: You need to edit the wkt_list manually in ```location_report.py```.
+- **Execution**:```python location_report.py```
+
+### `csv-trimmer.py`
+- **Purpose**: Streamlines CSV files by removing non-essential fields, focusing on key information such as `entity_id`, `event_time`, `latitude`, and `longitude`. Output: ```<inputfile>-slim.csv```
+- **Execution**:```python csv-trimmer.py <file_1.csv>```
 
 
-This directory contains scripts used to process ADTECH data from LIGHTHOUSE.
+### `cluster_adtech.py`
+- **Purpose**: Identifies clusters of activity by analyzing device dwell times, aiding in the discovery of significant sites like loading zones or rest areas. Output: ```hexes_over_hour.csv``` and ```detailed_dwell_time.csv```
+- **Execution**:```python cluster_adtech.py <combined.csv>```
 
-# Scripts:
-
-**`find_in_files.py`** 
-This tool is used when you run an export and compare a field between different locations. To use this, select multiple polygons in LIGHTHOUSE that you want to find common fields between. For example, to find which device has been seen in all the polygons. When you export data from your search, you’ll be able to run a compare operation on one field (e.g. entity_id). When you unzip the results, there will be a folder called “analysis” containing a list of the unique items from the field, each in one file per polygon. This tool will quickly show you all the field values that were seen in more than one file, sorted by frequency. An example of how to use this is to select all known ammunition depots or supply points, run a search, and then compare to see which devices have been traveling to multiple points of interest. 
-
-**`combine_csv.py`**
-This script merges two or more CSVs that might not perfectly overlap. This is useful when you have two or more CSVs whose fields might be in different orders, or don’t have the same number of fields. For example, if you search a long period of time and the scheme has changed, some fields could be different. It also works fine to quickly merge a directory of CSVs, which is common in the output of longer LIGHTHOUSE exports.
-
-**`csv-to-json.py`**
-Exactly what it says. Useful for loading CSV data into BigQuery, Elastic, etc.
-
-**`location_report.py`**
-Uses a list of polygons to represent known ammunition depots, this script quickly summarized when devices were seen at known locations. Feel free to swap out the list of polygons for ones that you’re interested in.
-
-**`csv-trimmer.py`**
-This removes excess fields and keeps only the entity_id, event_time, lat, and lon fields. This greatly reduces the size of the CSV file and allows you to handle much longer files than if you use the raw LIGHTHOUSE output.
-
-**`cluster_adtech.py`**
-Used to help find clusters of activity where devices in your data have stayed for more than one hour (dwell time). This may help identify bed-down, loading/unloading, or similar locations.
-
-**`eid_search_str.py`**
-Takes all CSV files in a directory and generates a search string for lighthouse to find all the entity_ids in the files. 
-This is useful when you have a large number of CSVs and want to search for all the entity_ids in them.
+### `eid_search_str.py`
+- **Purpose**: Generates a search string for LIGHTHOUSE to locate all `entity_ids` within CSV files in a directory, useful for comprehensive entity_id searches. Output: ```eid-ss.txt```
+- **Execution**:```python eid_search_str.py <directory>```
