@@ -37,9 +37,9 @@ def files_to_parse(csv_dir: str) -> None:
     with open(output_file, 'w', newline='') as textfile:
         for n, eid in enumerate(entity_ids):
             if n == len(entity_ids) - 1:
-                textfile.write(f"entity_id:{eid} OR \n")
+                textfile.write(f"entity_id:{eid}")
             else:
-                textfile.write(f"entity_id:{eid} ")
+                textfile.write(f"entity_id:{eid}  OR \n")
 
     print(f"Combined CSV files successfully written to '{output_file}'")
 
