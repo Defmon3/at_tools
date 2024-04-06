@@ -41,7 +41,10 @@ This directory includes a collection of scripts tailored for processing ADTECH d
 ### `combine_csv.py`
 - **Purpose**: Merges multiple CSV files, accommodating variations in field order or completeness. Useful for integrating CSVs from extended periods or differing schemas.
 - **Usage**: Directly merge CSVs from different sources or times to create a cohesive dataset.
-- **Execution**:```python combine_csv.py <file_1.csv> <file_2.csv> ... <file_n.csv>```
+- **Execution**:```python combine_csv.py <file_1.csv> <file_2.csv> ... <file_n.csv>``` or use the following bash script to combine all CSVs in a directory:
+    ```bash 
+    find <csv_dir> -maxdepth 1 -type f| xargs python3 </path/to/combine_csv.py>
+    ```
 
 ### `csv-to-json.py`
 - **Purpose**: Converts CSV files into JSON format, making the data suitable for databases like BigQuery or Elasticsearch. Output: ```<inputfile>.json```
