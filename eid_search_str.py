@@ -33,7 +33,7 @@ def files_to_parse(csv_dir: str) -> None:
             entity_ids.update({row['Entity Id'] for row in rows if row.get('Entity Id')})
 
     # Create the combined CSV file
-    output_file = "entity_id_search_string.txt"
+    output_file = os.path.join(csv_dir, "eid-ss.txt")
     with open(output_file, 'w', newline='') as textfile:
         for n, eid in enumerate(entity_ids):
             if n == len(entity_ids) - 1:
