@@ -34,13 +34,16 @@ def files_to_parse(csv_dir: str) -> None:
 
     # Create the combined CSV file
     output_file = os.path.join(csv_dir, "eid-ss.txt")
+    print("#################### SEARCH STRING ####################\n")
     with open(output_file, 'w', newline='') as textfile:
         for n, eid in enumerate(entity_ids):
             if n == len(entity_ids) - 1:
                 textfile.write(f"entity_id:{eid}")
+                print(f"entity_id:{eid}")
             else:
                 textfile.write(f"entity_id:{eid}  OR \n")
-
+                print(f"entity_id:{eid}  OR ")
+    print("\n#################### SEARCH STRING END ####################")
     print(f"Combined CSV files successfully written to '{output_file}'")
 
 
