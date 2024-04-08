@@ -18,7 +18,7 @@ def process_csv(input_filename):
         'Entity Id'
     ]
 
-    with open(input_filename, 'r', newline='') as infile, \
+    with open(input_filename, newline='') as infile, \
             open(output_filename, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
         writer = csv.DictWriter(outfile, fieldnames=desired_fields)
@@ -28,7 +28,8 @@ def process_csv(input_filename):
         for row in rows:
             slim_row = {field: row.get(field, "") for field in desired_fields}
             writer.writerow(slim_row)
-        print(wrote 
+        print(f"Processed {len(rows)} rows and wrote to {output_filename}")
+        return output_filename
 
 
 if __name__ == "__main__":
