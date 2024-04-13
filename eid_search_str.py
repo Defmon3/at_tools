@@ -2,38 +2,57 @@
 """Extracts entity IDs from all files in a directory."""
 import argparse
 import csv
-import os.path
+import zipfile
+from pathlib import Path
+from typing import Iterable
 
 
-def files_to_parse(csv_dir: str) -> None:
-    """Extracts entity IDs from a list of CSV files and generates a search string for lighthouse.
+def main(directory: str, clean: bool) -> None:
+    """Main function to process the directory."""
+    target = Path(directory)
 
-    Args:
-        :param csv_dir: Path do directory containing CSV files
-    Returns:
-        :return: None
-
-    """
-    if not os.path.exists(csv_dir):
-        print(f"Directory '{csv_dir}' does not exist.")
+    if not target.exists():
+        print(f"Directory '{directory}' does not exist.")
         return
 
+    if clean:
+        remove_csvs(target)
+
+    z_files: Iterable[Path] = Path(target).rglob('*.zip')
+
+    for zip_file in z_files:
+        extract_zip(zip_file, target)
+
+    parse_files(target)
+
+
+def remove_csvs(target: Path) -> None:
+    """Remove all CSV files in the specified directory."""
+    for csv_file in target.rglob("*.csv"):
+        csv_file.unlink()
+
+
+def extract_zip(z_file: Path, target: Path) -> None:
+    with zipfile.ZipFile(z_file) as zip_ref:
+        zip_ref.extractall(target)
+
+
+def parse_files(target: Path) -> None:
     entity_ids = set()
-    csv_files = [file for file in os.listdir(csv_dir) if file.endswith('.csv')]
+    csv_files = target.rglob('*.csv')
 
     if not csv_files:
-        print(f"No CSV files found in '{csv_dir}'.")
+        print(f"No CSV files found in '{target.name}'.")
         return
 
-    for file_name in csv_files:
-        full_path = os.path.join(csv_dir, file_name)
-        with open(full_path, newline='', encoding='utf-8') as csvfile:
+    for csv_file in csv_files:
+        with open(csv_file.absolute(), newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             rows = list(reader)
             entity_ids.update({row['Entity Id'] for row in rows if row.get('Entity Id')})
 
     # Create the combined CSV file
-    output_file = os.path.join(csv_dir, "eid-ss.txt")
+    output_file = Path(target / "eid-ss.txt")
     print("#################### SEARCH STRING ####################\n")
     with open(output_file, 'w', newline='') as textfile:
         for n, eid in enumerate(entity_ids):
@@ -52,6 +71,8 @@ if __name__ == "__main__":
         description="Extract entity IDs from CSV files and generate a search string for lighthouse.")
     parser.add_argument('csv_dir', metavar='directory', type=str,
                         help='Directory containing CSV files to parse.')
+    parser.add_argument("--clean", action="store_true", help="Clean old CSV files before processing")
+
     args = parser.parse_args()
 
-    files_to_parse(args.csv_dir)
+    main(args.csv_dir, args.clean)

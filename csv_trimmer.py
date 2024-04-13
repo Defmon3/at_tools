@@ -4,10 +4,10 @@ import argparse
 import csv
 
 
-def process_csv(input_filename):
+def process_csv(input_filename: str) -> str:
     output_filename = input_filename.replace(".csv", "-slim.csv")
 
-    desired_fields = [
+    desired_fields = {
         'Event Time',
         'Advertiser Id',
         'Latitude',
@@ -16,7 +16,7 @@ def process_csv(input_filename):
         'Confidence',
         'Longitude',
         'Entity Id'
-    ]
+    }
 
     with open(input_filename, newline='') as infile, \
             open(output_filename, 'w', newline='') as outfile:
