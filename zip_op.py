@@ -14,7 +14,7 @@ def extract_zipfiles(target: str = '.'):
         with ZipFile(zf) as zip_ref:
             target_dir.mkdir(exist_ok=True)
             zip_ref.extractall(target_dir.name)
-            shutil.move(zf, os.path.join(zf.stem, zf))
+            shutil.move(zf, os.path.join(zf.absolute(), zf))
 
 
 if __name__ == '__main__':
