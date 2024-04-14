@@ -93,11 +93,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
-
-    sys.argv.append("test")
-    sys.argv.append('--time_column')
-    sys.argv.append('Event Time')
-    sys.argv.append('--entity_id_column')
-    sys.argv.append('Entity Id')
     main()
