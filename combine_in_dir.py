@@ -5,30 +5,22 @@ import csv
 from pathlib import Path
 
 
-def combine_csv_files(file_list: list) -> None:
+def combine_csv_files(target_dir: str) -> None:
     """Combines multiple CSV files with potentially different headers into a single file.
 
     Args:
-        file_list (list): A list of CSV file paths.
+        target_dir (list): A list of CSV file paths.
 
     Returns:
         None (writes the combined data to a new CSV file)
     """
-    files = []
-    for f in file_list:
-        file = Path(f)
-        if file.is_dir():
-            files.extend(file.rglob('*.csv'))
-        else:
-            files.append(file)
-    # Check if the file exists
 
     all_fields = set()  # Collect all unique fields
     data_rows = []
-
+    csv_files = Path(target_dir).rglob('*.csv')
     # Collect fields and data from each file
-    for file_path in file_list:
-        with open(file_path, newline='') as csvfile:
+    for file_path in csv_files:
+        with open(file_path.absolute(), newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             all_fields.update(reader.fieldnames)  # Add fields to the master set
 
@@ -51,8 +43,8 @@ def combine_csv_files(file_list: list) -> None:
 if __name__ == "__main__":
     # Argument parsing for command-line usage
     parser = argparse.ArgumentParser(description="Combine CSV files with compatible data structures.")
-    parser.add_argument('csv_files', metavar='file', type=str, nargs='+',
+    parser.add_argument('target', metavar='file', type=str,
                         help='CSV files to combine')
     args = parser.parse_args()
 
-    combine_csv_files(args.csv_files)
+    combine_csv_files(args.target)
