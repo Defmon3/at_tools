@@ -1,18 +1,22 @@
 import argparse
+import csv
 from pathlib import Path
+from typing import List, Dict, Any
 
-import pandas as pd
+import pendulum
 from loguru import logger as log
 
 
-def load_data(file_path: Path) -> pd.DataFrame:
-    log.info("Loading data from {}", file_path)
-    data = pd.read_csv(file_path)
-    data.columns = handle_duplicate_column_names(data.columns)
+def load_data(file_path: Path) -> List[Dict[str, Any]]:
+    log.info(f"Loading data from {file_path}")
+    with open(file_path, encoding='utf-8', newline='') as file:
+        reader = csv.DictReader(file)
+        data = list(reader)
+        reader.fieldnames = handle_duplicate_column_names(list(reader.fieldnames))
     return data
 
 
-def handle_duplicate_column_names(columns):
+def handle_duplicate_column_names(columns: List[str]) -> List[str]:
     seen = {}
     for idx, column in enumerate(columns):
         if column in seen:
@@ -23,23 +27,31 @@ def handle_duplicate_column_names(columns):
     return columns
 
 
-def preprocess_data(data: pd.DataFrame, time_column: str) -> pd.DataFrame:
-    log.info("Preprocessing data...")
-    data[time_column] = pd.to_datetime(data[time_column])
-    data = data.sort_values(time_column)
-    return data
+def sort_data_by_time(data: List[Dict[str, Any]], time_column: str) -> List[Dict[str, Any]]:
+    log.info("Sorting data by time...")
+    for row in data:
+        row[time_column] = pendulum.parse(row[time_column], strict=False)
+    return sorted(data, key=lambda x: x[time_column])
 
 
-def filter_data(data: pd.DataFrame, entity_id_column: str, time_column: str) -> pd.DataFrame:
-    log.info("Filtering data...")
-    data.set_index(time_column, inplace=True)
-    data = data.groupby(entity_id_column).resample('5T').first().reset_index(level=0, drop=True)
-    return data
+def filter_data(data: List[Dict[str, Any]], entity_id_column: str, time_column: str) -> List[Dict[str, Any]]:
+    last_entry = {}
+    filtered = []
+    for row in data:
+        entity_id = row[entity_id_column]
+        time = row[time_column]
+        if entity_id not in last_entry or time > last_entry[entity_id][time_column]:
+            last_entry[entity_id] = row
+            filtered.append(row)
+    return filtered
 
 
-def save_data(data: pd.DataFrame, file_path: Path):
-    log.info("Saving filtered data to {}", file_path)
-    data.to_csv(file_path)
+def save_data(data: List[Dict[str, Any]], file_path: Path) -> None:
+    log.info(f"Saving data to {file_path}")
+    with open(file_path, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
 
 
 def parse_arguments():
@@ -53,31 +65,39 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def find_csv_files(paths: list[str]) -> list[Path]:
+def find_csv_files(paths: List[str]) -> List[Path]:
     csv_files = []
     for path in paths:
         p = Path(path)
         if p.is_dir():
-            csv_files.extend(p.rglob('*.csv'))
-        elif p.is_file():
+            csv_files.extend([f for f in p.rglob('*.csv') if 'strip-time' not in f.stem])
+        elif p.is_file() and 'strip-time' not in p.stem:
             csv_files.append(p)
         else:
-            log.warning("Path {} is neither a file nor a directory.", p)
+            log.warning(f"Path {p} is neither a file nor a directory.")
     return csv_files
 
 
 def main():
     args = parse_arguments()
     csv_files = find_csv_files(args.input)
+    log.debug(f"Found {len(csv_files)} CSV files")
     log.debug(f"Filtering columns: {args.entity_id_column} by {args.time_column}")
     for csv_file in csv_files:
-        log.info("Processing {}", csv_file)
+        log.info(f"Processing {csv_file}")
         data = load_data(csv_file)
-        data = preprocess_data(data, args.time_column)
+        data = sort_data_by_time(data, args.time_column)
         data = filter_data(data, args.entity_id_column, args.time_column)
         output_file = csv_file.with_stem(f"{csv_file.stem}-strip-time")
         save_data(data, output_file)
 
 
 if __name__ == "__main__":
+    import sys
+
+    sys.argv.append("test")
+    sys.argv.append('--time_column')
+    sys.argv.append('Event Time')
+    sys.argv.append('--entity_id_column')
+    sys.argv.append('Entity Id')
     main()
