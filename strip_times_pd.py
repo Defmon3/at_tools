@@ -69,7 +69,7 @@ def find_csv_files(paths: list[str]) -> list[Path]:
 def main():
     args = parse_arguments()
     csv_files = find_csv_files(args.input)
-
+    log.debug(f"Filtering columns: {args.entity_id_column} by {args.time_column}")
     for csv_file in csv_files:
         log.info("Processing {}", csv_file)
         data = load_data(csv_file)
